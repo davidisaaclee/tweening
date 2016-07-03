@@ -17,9 +17,13 @@ class ViewController: UIViewController {
 			               y: CGFloat(arc4random()).truncatingRemainder(dividingBy: rect.height) + rect.origin.y)
 		}
 
+		let margin: CGFloat = 30
+		let bounds = visualization.bounds
+			.insetBy(dx: margin, dy: margin)
+		
 		let keys = (0 ..< 3).map { index in
-			return Keypoint(position: randomPoint(inRect: self.visualization.bounds),
-			                value: randomPoint(inRect: self.visualization.bounds))
+			return Keypoint(position: randomPoint(inRect: bounds),
+			                value: randomPoint(inRect: bounds))
 		}
 
 		let keyfield = KeyField(keys: Set<Keypoint>(keys))
@@ -45,6 +49,10 @@ class ViewController: UIViewController {
 		super.touchesEnded(touches, with: event)
 
 		visualization.inputPosition = nil
+	}
+
+	override func prefersStatusBarHidden() -> Bool {
+		return true
 	}
 }
 
