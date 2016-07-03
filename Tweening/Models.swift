@@ -23,9 +23,9 @@ struct KeyField {
 }
 
 extension KeyField {
-	func power(for key: Keypoint, withInputAt inputPoint: CGPoint) -> Power {
+	func power(for key: Keypoint, withInputAt point: CGPoint, towards direction: CGPoint) -> Power {
 		func calculateRawPower(for key: Keypoint) -> CGFloat {
-			let distance = key.position.distanceTo(inputPoint)
+			let distance = key.position.distanceTo(point)
 			guard distance != 0 else {
 				return CGFloat.infinity
 			}
@@ -34,15 +34,14 @@ extension KeyField {
 
 		let allRawPowers = keys.map(calculateRawPower)
 		let combinedRawPowers = allRawPowers.reduce(0, combine: (+))
-
 		let rawPowerForInputKey = calculateRawPower(for: key)
 
 		return rawPowerForInputKey / combinedRawPowers
 	}
 
-	func value(for inputPosition: CGPoint) -> CGPoint {
+	func value(for inputPosition: CGPoint, towards direction: CGPoint) -> CGPoint {
 		return keys
-			.map { $0.value * self.power(for: $0, withInputAt: inputPosition) }
+			.map { $0.value * self.power(for: $0, withInputAt: inputPosition, towards: direction) }
 			.reduce(CGPoint.zero, combine: (+))
 	}
 

@@ -124,7 +124,8 @@ class KeyfieldVisualization: UIView {
 	private func drawPowerConnections() {
 		guard
 			let keyfield = keyfield,
-			let inputPosition = inputPosition
+			let inputPosition = inputPosition,
+			let inputDirection = inputDirection
 			else {
 			return
 		}
@@ -137,15 +138,34 @@ class KeyfieldVisualization: UIView {
 				path.setLineDash([3, 3], count: 2, phase: 0)
 				return (key, path)
 			}.forEach {
-				let power = keyfield.power(for: $0.0, withInputAt: inputPosition)
+				let power = keyfield.power(for: $0.0, withInputAt: inputPosition, towards: inputDirection)
 				self.connectionColor.withAlphaComponent(power * 2).setStroke()
 				$0.1.stroke()
 			}
 	}
 
 	private func drawRadials() {
+//		guard
+//			let inputPosition = inputPosition,
+//			let keyfield = keyfield
+//			else {
+//				return
+//		}
+//
+//		radialColor.setStroke()
+//
+//		keyfield.keys.map { key -> (CGPoint, KeyField.Power) in
+//			(key.value, keyfield.power(for: key, withInputAt: inputPosition))
+//		}.forEach { (position, power) in
+//			let radius: CGFloat = 200 * power
+//			let path = UIBezierPath(center: position, radius: radius)
+//
+//			path.stroke()
+//		}
+
 		guard
 			let inputPosition = inputPosition,
+			let inputDirection = inputDirection,
 			let keyfield = keyfield
 			else {
 				return
@@ -154,9 +174,9 @@ class KeyfieldVisualization: UIView {
 		radialColor.setStroke()
 
 		keyfield.keys.map { key -> (CGPoint, KeyField.Power) in
-			(key.value, keyfield.power(for: key, withInputAt: inputPosition))
+			(key.position, keyfield.directionalPower(for: key, withInputAt: inputPosition, towards: inputDirection))
 		}.forEach { (position, power) in
-			let radius: CGFloat = 200 * power
+			let radius: CGFloat = 500 * power
 			let path = UIBezierPath(center: position, radius: radius)
 
 			path.stroke()
@@ -178,7 +198,8 @@ class KeyfieldVisualization: UIView {
 	private func drawOutput() {
 		guard
 			let keyfield = keyfield,
-			let inputPosition = inputPosition
+			let inputPosition = inputPosition,
+			let inputDirection = inputDirection
 			else {
 				return
 		}
@@ -186,7 +207,7 @@ class KeyfieldVisualization: UIView {
 		outputColor.setStroke()
 
 
-		let path = UIBezierPath(center: keyfield.value(for: inputPosition),
+		let path = UIBezierPath(center: keyfield.value(for: inputPosition, towards: inputDirection),
 		                        radius: 10)
 		path.stroke()
 	}
@@ -223,8 +244,7 @@ class KeyfieldVisualization: UIView {
 				let span = inputDirection
 				let vectorToProject = key.position - inputPosition
 
-				let projectionOffset =
-					span * (vectorToProject.dot(span) / span.dot(span))
+				let projectionOffset = span * (vectorToProject.dot(span) / span.dot(span))
 
 				return (key.position, projectionOffset + inputPosition)
 			}.filter { (keyPosition, projection) in
