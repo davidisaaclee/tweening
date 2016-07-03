@@ -45,4 +45,29 @@ extension KeyField {
 			.map { $0.value * self.power(for: $0, withInputAt: inputPosition) }
 			.reduce(CGPoint.zero, combine: (+))
 	}
+
+	func directionalPower(for key: Keypoint, withInputAt position: CGPoint, towards direction: CGPoint) -> Power {
+		let span = direction
+		let vectorToProject = key.position - position
+
+		let projectionOffset = span * (vectorToProject.dot(span) / span.dot(span))
+
+		let projection = position + projectionOffset
+
+		let s = CGPoint(x: (projection.x - position.x) / direction.x,
+										y: (projection.y - position.y) / direction.y)
+
+		if s.x.sign == .plus && s.y.sign == .plus {
+			// Projection is on ray.
+			let m = (key.position - projection).magnitude
+			if m == 0 {
+				return CGFloat.infinity
+			} else {
+				return 1.0 / m
+			}
+		} else {
+			// Projection is on reflection of ray.
+			return 0
+		}
+	}
 }
