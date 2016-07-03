@@ -8,7 +8,7 @@ class KeyfieldVisualization: UIView {
 	var keyPositionColor: UIColor = #colorLiteral(red: 1, green: 0.2095748107, blue: 0.2320909677, alpha: 1)
 	var inputPositionColor: UIColor = #colorLiteral(red: 0.4137221559, green: 0.4878804722, blue: 1, alpha: 1)
 	var connectionColor: UIColor = #colorLiteral(red: 0.9446166754, green: 0.6509571671, blue: 0.1558967829, alpha: 1)
-	var radialColor: UIColor = #colorLiteral(red: 0.6707916856, green: 0.8720328808, blue: 0.5221258998, alpha: 1)
+	var radialColor: UIColor = #colorLiteral(red: 0.9672742486, green: 0.8225458264, blue: 0.4772382379, alpha: 1)
 	var keyValueColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var keyValueConnectionsColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var outputColor: UIColor = #colorLiteral(red: 0.2818343937, green: 0.5693024397, blue: 0.1281824261, alpha: 1)
@@ -223,10 +223,20 @@ class KeyfieldVisualization: UIView {
 				let span = inputDirection
 				let vectorToProject = key.position - inputPosition
 
-				let projectionPoint =
+				let projectionOffset =
 					span * (vectorToProject.dot(span) / span.dot(span))
 
-				return (key.position, projectionPoint + inputPosition)
+				return (key.position, projectionOffset + inputPosition)
+			}.filter { (keyPosition, projection) in
+				// Filter out everything that's not on the correct side of the trajectory ray.
+
+				// projection = s * inputDirection + inputPosition
+				// I want to know if `s` is positive.
+				let s = CGPoint(x: (projection.x - inputPosition.x) / inputDirection.x,
+				                y: (projection.y - inputPosition.y) / inputDirection.y)
+
+				return s.x.sign == .plus
+						&& s.y.sign == .plus
 			}.forEach { (elm) in
 				let (keyPosition, projectionPoint) = elm
 
