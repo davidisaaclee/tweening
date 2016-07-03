@@ -20,7 +20,7 @@ class ViewController: UIViewController {
 		let margin: CGFloat = 30
 		let bounds = visualization.bounds
 			.insetBy(dx: margin, dy: margin)
-		
+
 		let keys = (0 ..< 3).map { index in
 			return Keypoint(position: randomPoint(inRect: bounds),
 			                value: randomPoint(inRect: bounds))

@@ -8,9 +8,10 @@ class KeyfieldVisualization: UIView {
 	var keyPositionColor: UIColor = #colorLiteral(red: 1, green: 0.2095748107, blue: 0.2320909677, alpha: 1)
 	var inputPositionColor: UIColor = #colorLiteral(red: 0.4137221559, green: 0.4878804722, blue: 1, alpha: 1)
 	var connectionColor: UIColor = #colorLiteral(red: 0.9446166754, green: 0.6509571671, blue: 0.1558967829, alpha: 1)
-	var radialColor: UIColor = #colorLiteral(red: 0.5219543576, green: 0.7994346619, blue: 0.346042335, alpha: 1)
+	var radialColor: UIColor = #colorLiteral(red: 0.6707916856, green: 0.8720328808, blue: 0.5221258998, alpha: 1)
 	var keyValueColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var keyValueConnectionsColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
+	var outputColor: UIColor = #colorLiteral(red: 0.2818343937, green: 0.5693024397, blue: 0.1281824261, alpha: 1)
 
 	var keyfield: KeyField? {
 		didSet {
@@ -60,6 +61,7 @@ class KeyfieldVisualization: UIView {
 
 		drawRadials()
 		drawKeyValues()
+		drawOutput()
 	}
 
   // MARK: Helpers
@@ -158,6 +160,22 @@ class KeyfieldVisualization: UIView {
 		keyfield.keys
 			.map { UIBezierPath(center: $0.value, radius: 5) }
 			.forEach { $0.fill() }
+	}
+
+	private func drawOutput() {
+		guard
+			let keyfield = keyfield,
+			let inputPosition = inputPosition
+			else {
+				return
+		}
+
+		outputColor.setStroke()
+
+
+		let path = UIBezierPath(center: keyfield.value(for: inputPosition),
+		                        radius: 10)
+		path.stroke()
 	}
 
 }

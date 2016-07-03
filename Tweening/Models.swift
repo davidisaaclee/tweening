@@ -1,4 +1,5 @@
 import UIKit
+import VectorSwift
 
 struct Keypoint {
 	var position: CGPoint
@@ -37,5 +38,11 @@ extension KeyField {
 		let rawPowerForInputKey = calculateRawPower(for: key)
 
 		return rawPowerForInputKey / combinedRawPowers
+	}
+
+	func value(for inputPosition: CGPoint) -> CGPoint {
+		return keys
+			.map { $0.value * self.power(for: $0, withInputAt: inputPosition) }
+			.reduce(CGPoint.zero, combine: (+))
 	}
 }
