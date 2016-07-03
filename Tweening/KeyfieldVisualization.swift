@@ -13,6 +13,7 @@ class KeyfieldVisualization: UIView {
 	var keyValueConnectionsColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var outputColor: UIColor = #colorLiteral(red: 0.2818343937, green: 0.5693024397, blue: 0.1281824261, alpha: 1)
 	var trajectoryColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
+	var projectionColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
 
 	var keyfield: KeyField? {
 		didSet {
@@ -62,6 +63,8 @@ class KeyfieldVisualization: UIView {
 		drawInput()
 		drawKeyValues()
 		drawOutput()
+
+		drawKeypointProjectionsOntoTrajectory()
 	}
 
   // MARK: Helpers
@@ -135,7 +138,6 @@ class KeyfieldVisualization: UIView {
 				return (key, path)
 			}.forEach {
 				let power = keyfield.power(for: $0.0, withInputAt: inputPosition)
-				print(power)
 				self.connectionColor.withAlphaComponent(power * 2).setStroke()
 				$0.1.stroke()
 			}
@@ -205,7 +207,45 @@ class KeyfieldVisualization: UIView {
 		path.stroke()
 	}
 
+	private func drawKeypointProjectionsOntoTrajectory() {
+		guard
+			let inputPosition = inputPosition,
+			let inputDirection = inputDirection,
+			let keyfield = keyfield
+			else {
+				return
+		}
+
+		projectionColor.set()
+
+		keyfield.keys
+			.map { key -> (CGPoint, CGPoint) in
+				let span = inputDirection
+				let vectorToProject = key.position - inputPosition
+
+				let projectionPoint =
+					span * (vectorToProject.dot(span) / span.dot(span))
+
+				return (key.position, projectionPoint + inputPosition)
+			}.forEach { (elm) in
+				let (keyPosition, projectionPoint) = elm
+
+				let path = UIBezierPath(center: projectionPoint, radius: 3)
+				path.fill()
+
+				let connection = UIBezierPath()
+				connection.move(to: keyPosition)
+				connection.addLine(to: projectionPoint)
+				connection.stroke()
+			}
+	}
+
 }
+
+private func angle(between v1: CGPoint, and v2: CGPoint) -> CGFloat {
+	return v1.dot(v2) / (v1.magnitude * v2.magnitude)
+}
+
 
 extension UIBezierPath {
 	convenience init(center: CGPoint, radius: CGFloat) {
