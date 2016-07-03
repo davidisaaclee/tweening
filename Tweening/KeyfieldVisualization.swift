@@ -56,15 +56,14 @@ class KeyfieldVisualization: UIView {
 		drawKeyValueConnections()
 		drawPowerConnections()
 		drawTrajectory()
-
 		drawRadials()
+		drawKeypointProjectionsOntoTrajectory()
 
 		drawKeys()
-		drawInput()
 		drawKeyValues()
-		drawOutput()
 
-		drawKeypointProjectionsOntoTrajectory()
+		drawInput()
+		drawOutput()
 	}
 
   // MARK: Helpers
