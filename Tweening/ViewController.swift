@@ -16,22 +16,7 @@ class ViewController: UIViewController {
 
 		view.addSubview(visualization)
 
-		func randomPoint(inRect rect: CGRect) -> CGPoint {
-			return CGPoint(x: CGFloat(arc4random()).truncatingRemainder(dividingBy: rect.width) + rect.origin.x,
-			               y: CGFloat(arc4random()).truncatingRemainder(dividingBy: rect.height) + rect.origin.y)
-		}
-
-		let margin: CGFloat = 30
-		let bounds = visualization.bounds
-			.insetBy(dx: margin, dy: margin)
-
-		let keys = (0 ..< 3).map { index in
-			return Keypoint(position: randomPoint(inRect: bounds),
-			                value: randomPoint(inRect: bounds))
-		}
-
-		let keyfield = KeyField(keys: Set<Keypoint>(keys))
-		visualization.keyfield = keyfield
+		generateKeyfield()
 	}
 
 
@@ -52,6 +37,14 @@ class ViewController: UIViewController {
 	override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
 		super.touchesEnded(touches, with: event)
 		pushInput(nil)
+	}
+
+	override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
+		super.motionEnded(motion, with: event)
+
+		if let unwrappedEvent = event where unwrappedEvent.subtype == UIEventSubtype.motionShake {
+			generateKeyfield()
+		}
 	}
 
 	override func prefersStatusBarHidden() -> Bool {
@@ -79,6 +72,25 @@ class ViewController: UIViewController {
 		}
 
 		visualization.inputDirection = (last - first).unit
+	}
+
+	func generateKeyfield() {
+		func randomPoint(inRect rect: CGRect) -> CGPoint {
+			return CGPoint(x: CGFloat(arc4random()).truncatingRemainder(dividingBy: rect.width) + rect.origin.x,
+			               y: CGFloat(arc4random()).truncatingRemainder(dividingBy: rect.height) + rect.origin.y)
+		}
+
+		let margin: CGFloat = 30
+		let bounds = visualization.bounds
+			.insetBy(dx: margin, dy: margin)
+
+		let keys = (0 ..< 3).map { index in
+			return Keypoint(position: randomPoint(inRect: bounds),
+			                value: randomPoint(inRect: bounds))
+		}
+
+		let keyfield = KeyField(keys: Set<Keypoint>(keys))
+		visualization.keyfield = keyfield
 	}
 }
 
