@@ -12,6 +12,7 @@ class KeyfieldVisualization: UIView {
 	var keyValueColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var keyValueConnectionsColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var outputColor: UIColor = #colorLiteral(red: 0.2818343937, green: 0.5693024397, blue: 0.1281824261, alpha: 1)
+	var trajectoryColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
 
 	var keyfield: KeyField? {
 		didSet {
@@ -20,6 +21,12 @@ class KeyfieldVisualization: UIView {
 	}
 
 	var inputPosition: CGPoint? {
+		didSet {
+			setNeedsDisplay()
+		}
+	}
+
+	var inputDirection: CGPoint? {
 		didSet {
 			setNeedsDisplay()
 		}
@@ -46,20 +53,13 @@ class KeyfieldVisualization: UIView {
 		UIBezierPath(rect: rect).fill()
 
 		drawKeyValueConnections()
-
-		if let inputPosition = inputPosition {
-			drawPowerConnections(from: inputPosition)
-		}
-
-		if let keyfield = keyfield {
-			draw(keyfield)
-		}
-
-		if let inputPosition = inputPosition {
-			draw(inputAt: inputPosition)
-		}
+		drawPowerConnections()
+		drawTrajectory()
 
 		drawRadials()
+
+		drawKeys()
+		drawInput()
 		drawKeyValues()
 		drawOutput()
 	}
@@ -68,7 +68,11 @@ class KeyfieldVisualization: UIView {
 
   private func setup() {}
 
-	private func draw(_ keyfield: KeyField) {
+	private func drawKeys() {
+		guard let keyfield = keyfield else {
+			return
+		}
+
 		keyPositionColor.setFill()
 		let radius: CGFloat = 5
 
@@ -84,7 +88,11 @@ class KeyfieldVisualization: UIView {
 		}
 	}
 
-	private func draw(inputAt inputPosition: CGPoint) {
+	private func drawInput() {
+		guard let inputPosition = inputPosition else {
+			return
+		}
+
 		inputPositionColor.setFill()
 
 		let radius: CGFloat = 15
@@ -110,20 +118,23 @@ class KeyfieldVisualization: UIView {
 			}.forEach { $0.stroke() }
 	}
 
-	private func drawPowerConnections(from point: CGPoint) {
-		guard let keyfield = keyfield else {
+	private func drawPowerConnections() {
+		guard
+			let keyfield = keyfield,
+			let inputPosition = inputPosition
+			else {
 			return
 		}
 
 		keyfield.keys
 			.map { key -> (Keypoint, UIBezierPath) in
 				let path = UIBezierPath()
-				path.move(to: point)
+				path.move(to: inputPosition)
 				path.addLine(to: key.position)
 				path.setLineDash([3, 3], count: 2, phase: 0)
 				return (key, path)
 			}.forEach {
-				let power = keyfield.power(for: $0.0, withInputAt: point)
+				let power = keyfield.power(for: $0.0, withInputAt: inputPosition)
 				print(power)
 				self.connectionColor.withAlphaComponent(power * 2).setStroke()
 				$0.1.stroke()
@@ -175,6 +186,22 @@ class KeyfieldVisualization: UIView {
 
 		let path = UIBezierPath(center: keyfield.value(for: inputPosition),
 		                        radius: 10)
+		path.stroke()
+	}
+
+	private func drawTrajectory() {
+		guard
+			let inputPosition = inputPosition,
+			let inputDirection = inputDirection
+			else {
+				return
+		}
+
+		trajectoryColor.setStroke()
+
+		let path = UIBezierPath()
+		path.move(to: inputPosition)
+		path.addLine(to: inputPosition + inputDirection * bounds.width * bounds.height)
 		path.stroke()
 	}
 
