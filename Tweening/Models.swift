@@ -80,15 +80,21 @@ extension KeyField {
 		if s.x.sign == .plus && s.y.sign == .plus {
 			// Projection is on ray.
 			let m = (key.position - projection).magnitude
-			if m == 0 {
-				return CGFloat.infinity
-			} else {
-				return 1.0 / m
-			}
+			return (m == 0) ? CGFloat.infinity : (1.0 / m)
 		} else {
 			// Projection is on reflection of ray.
 			return 0
 		}
+	}
+
+	func edgeBias(for key: Keypoint, withInputAt position: CGPoint) -> Power {
+		return edges
+			.filter { $0.left == key || $0.right == key }
+			.map { (edge) -> Power in
+				let edgeVector = edge.right.position - edge.left.position
+				let projectionOffset = (position - edge.left.position).project(onto: edgeVector)
+				return (projectionOffset + edge.left.position).distanceTo(key.position) / edgeVector.magnitude
+			}.reduce(0, combine: (+))
 	}
 }
 
@@ -96,37 +102,6 @@ extension KeyField.Edge: Hashable {
 	var hashValue: Int {
 		let sorted = [left, right].sorted { (l, r) in l.hashValue < r.hashValue }
 		return "\(sorted[0].hashValue),\(sorted[1].hashValue)".hashValue
-
-//		func compare(_ p1: CGPoint, _ p2: CGPoint) -> ComparisonResult {
-//			// Creates a unique scalar out of a 2D point.
-//			func pair(_ p: CGPoint) -> CGFloat {
-//				return (p.x * 2 + (p.y * 2 - 1))
-//			}
-//
-//			let p1ʹ = pair(p1)
-//			let p2ʹ = pair(p2)
-//
-//			if p1ʹ == p2ʹ {
-//				return .orderedSame
-//			} else if p1ʹ > p2ʹ {
-//				return .orderedDescending
-//			} else {
-//				return .orderedAscending
-//			}
-//		}
-//
-//		let sorted = [left, right].sorted { (lhs, rhs) -> Bool in
-//			switch compare(lhs.position, rhs.position) {
-//			case .orderedAscending:
-//				return true
-//
-//			case .orderedDescending:
-//				return false
-//
-//			case .orderedSame:
-//				switch compare(lhs.value)
-//			}
-//		}
 	}
 }
 

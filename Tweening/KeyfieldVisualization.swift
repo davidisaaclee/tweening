@@ -58,7 +58,7 @@ class KeyfieldVisualization: UIView {
 		drawInputOutputConnection()
 //		drawPowerConnections()
 //		drawTrajectory()
-//		drawRadials()
+		drawRadials()
 //		drawKeypointProjectionsOntoTrajectory()
 
 		drawKeyEdges()
@@ -132,38 +132,11 @@ class KeyfieldVisualization: UIView {
 				return
 		}
 
-//		keyfield.keys
-//			.map { key -> (CGPoint, CGPoint) in
-//				let projectionOffset = project(key.position - inputPosition, onto: inputDirection)
-//
-//				return (key.position, projectionOffset + inputPosition)
-//			}.filter { (keyPosition, projection) in
-//				// Filter out everything that's not on the correct side of the trajectory ray.
-//
-//				// projection = s * inputDirection + inputPosition
-//				// I want to know if `s` is positive.
-//				let s = CGPoint(x: (projection.x - inputPosition.x) / inputDirection.x,
-//				                y: (projection.y - inputPosition.y) / inputDirection.y)
-//
-//				return s.x.sign == .plus
-//					&& s.y.sign == .plus
-//			}.forEach { (elm) in
-//				let (keyPosition, projectionPoint) = elm
-//
-//				let path = UIBezierPath(center: projectionPoint, radius: 3)
-//				path.fill()
-//
-//				let connection = UIBezierPath()
-//				connection.move(to: keyPosition)
-//				connection.addLine(to: projectionPoint)
-//				connection.stroke()
-//		}
-
 		projectionColor.setStroke()
 
 		keyfield.edges.map { (edge) -> (CGPoint, CGPoint) in
 			let edgeVector = edge.right.position - edge.left.position
-			let projectionOffset = project(inputPosition - edge.left.position, onto: edgeVector)
+			let projectionOffset = (inputPosition - edge.left.position).project(onto: edgeVector)
 			return (inputPosition, edge.left.position + projectionOffset)
 		}.forEach { (p1, p2) in
 			let path = UIBezierPath()
@@ -261,9 +234,10 @@ class KeyfieldVisualization: UIView {
 		radialColor.setStroke()
 
 		keyfield.keys.map { key -> (CGPoint, KeyField.Power) in
-			(key.position, keyfield.directionalPower(for: key, withInputAt: inputPosition, towards: inputDirection))
+//			(key.position, keyfield.directionalPower(for: key, withInputAt: inputPosition, towards: inputDirection))
+			(key.position, keyfield.edgeBias(for: key, withInputAt: inputPosition))
 		}.forEach { (position, power) in
-			let radius: CGFloat = 500 * power
+			let radius: CGFloat = 100 * power
 			let path = UIBezierPath(center: position, radius: radius)
 
 			path.stroke()
@@ -328,7 +302,7 @@ class KeyfieldVisualization: UIView {
 
 		keyfield.keys
 			.map { key -> (CGPoint, CGPoint) in
-				let projectionOffset = project(key.position - inputPosition, onto: inputDirection)
+				let projectionOffset = (key.position - inputPosition).project(onto: inputDirection)
 
 				return (key.position, projectionOffset + inputPosition)
 			}.filter { (keyPosition, projection) in
@@ -358,10 +332,6 @@ class KeyfieldVisualization: UIView {
 
 private func angle(between v1: CGPoint, and v2: CGPoint) -> CGFloat {
 	return v1.dot(v2) / (v1.magnitude * v2.magnitude)
-}
-
-private func project(_ vector: CGPoint, onto span: CGPoint) -> CGPoint {
-	return span * (vector.dot(span) / span.dot(span))
 }
 
 

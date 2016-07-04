@@ -12,3 +12,10 @@ extension Vector where Self.Iterator.Element: Ring {
 			.reduce(Self.Iterator.Element.additionIdentity, combine: (+))
 	}
 }
+
+
+extension Vector where Self.Iterator.Element == CGFloat {
+	func project(onto span: Self) -> Self {
+		return span * (self.dot(span) / span.dot(span))
+	}
+}
