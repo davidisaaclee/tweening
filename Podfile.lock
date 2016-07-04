@@ -1,0 +1,22 @@
+PODS:
+  - VectorSwift (0.1.0)
+
+DEPENDENCIES:
+  - VectorSwift (from `https://github.com/davidisaaclee/VectorSwift.git`, branch `swift-3`)
+
+EXTERNAL SOURCES:
+  VectorSwift:
+    :branch: swift-3
+    :git: https://github.com/davidisaaclee/VectorSwift.git
+
+CHECKOUT OPTIONS:
+  VectorSwift:
+    :commit: 2fb894b4086a1147a96a36413f268a42536d3326
+    :git: https://github.com/davidisaaclee/VectorSwift.git
+
+SPEC CHECKSUMS:
+  VectorSwift: 2d6d83134d89b1e27d796c71deaa607cbfb9e05f
+
+PODFILE CHECKSUM: f12d877d1808c5aaf15ab690f5210451a3e7bb43
+
+COCOAPODS: 1.0.1
