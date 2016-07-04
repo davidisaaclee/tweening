@@ -6,14 +6,15 @@ class KeyfieldVisualization: UIView {
 	var canvasColor: UIColor = #colorLiteral(red: 0.9672742486, green: 0.9354698072, blue: 0.7717658872, alpha: 1)
 
 	var keyPositionColor: UIColor = #colorLiteral(red: 1, green: 0.2095748107, blue: 0.2320909677, alpha: 1)
-	var inputPositionColor: UIColor = #colorLiteral(red: 0.4137221559, green: 0.4878804722, blue: 1, alpha: 1)
+	var inputPositionColor: UIColor = #colorLiteral(red: 0.9385069609, green: 0.5891591311, blue: 0.4726046324, alpha: 1)
 	var connectionColor: UIColor = #colorLiteral(red: 0.9446166754, green: 0.6509571671, blue: 0.1558967829, alpha: 1)
 	var radialColor: UIColor = #colorLiteral(red: 0.9672742486, green: 0.8225458264, blue: 0.4772382379, alpha: 1)
 	var keyValueColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
 	var keyValueConnectionsColor: UIColor = #colorLiteral(red: 0.4776530862, green: 0.2292086482, blue: 0.9591622353, alpha: 1)
-	var outputColor: UIColor = #colorLiteral(red: 0.2818343937, green: 0.5693024397, blue: 0.1281824261, alpha: 1)
+	var outputColor: UIColor = #colorLiteral(red: 0.2856909931, green: 0, blue: 0.9589199424, alpha: 1)
 	var trajectoryColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
 	var projectionColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
+	var edgeColor: UIColor = #colorLiteral(red: 0.4120420814, green: 0.8022739887, blue: 0.9693969488, alpha: 1)
 
 	var keyfield: KeyField? {
 		didSet {
@@ -54,10 +55,14 @@ class KeyfieldVisualization: UIView {
 		UIBezierPath(rect: rect).fill()
 
 		drawKeyValueConnections()
-		drawPowerConnections()
-		drawTrajectory()
-		drawRadials()
-		drawKeypointProjectionsOntoTrajectory()
+		drawInputOutputConnection()
+//		drawPowerConnections()
+//		drawTrajectory()
+//		drawRadials()
+//		drawKeypointProjectionsOntoTrajectory()
+
+		drawKeyEdges()
+		drawEdgeProjections()
 
 		drawKeys()
 		drawKeyValues()
@@ -103,6 +108,71 @@ class KeyfieldVisualization: UIView {
 		path.fill()
 	}
 
+	private func drawKeyEdges() {
+		guard let keyfield = keyfield else {
+			return
+		}
+
+		edgeColor.setStroke()
+
+		keyfield.edges.forEach { edge in
+			let path = UIBezierPath()
+			path.move(to: edge.left.position)
+			path.addLine(to: edge.right.position)
+
+			path.stroke()
+		}
+	}
+
+	private func drawEdgeProjections() {
+		guard
+			let keyfield = keyfield,
+			let inputPosition = inputPosition
+			else {
+				return
+		}
+
+//		keyfield.keys
+//			.map { key -> (CGPoint, CGPoint) in
+//				let projectionOffset = project(key.position - inputPosition, onto: inputDirection)
+//
+//				return (key.position, projectionOffset + inputPosition)
+//			}.filter { (keyPosition, projection) in
+//				// Filter out everything that's not on the correct side of the trajectory ray.
+//
+//				// projection = s * inputDirection + inputPosition
+//				// I want to know if `s` is positive.
+//				let s = CGPoint(x: (projection.x - inputPosition.x) / inputDirection.x,
+//				                y: (projection.y - inputPosition.y) / inputDirection.y)
+//
+//				return s.x.sign == .plus
+//					&& s.y.sign == .plus
+//			}.forEach { (elm) in
+//				let (keyPosition, projectionPoint) = elm
+//
+//				let path = UIBezierPath(center: projectionPoint, radius: 3)
+//				path.fill()
+//
+//				let connection = UIBezierPath()
+//				connection.move(to: keyPosition)
+//				connection.addLine(to: projectionPoint)
+//				connection.stroke()
+//		}
+
+		projectionColor.setStroke()
+
+		keyfield.edges.map { (edge) -> (CGPoint, CGPoint) in
+			let edgeVector = edge.right.position - edge.left.position
+			let projectionOffset = project(inputPosition - edge.left.position, onto: edgeVector)
+			return (inputPosition, edge.left.position + projectionOffset)
+		}.forEach { (p1, p2) in
+			let path = UIBezierPath()
+			path.move(to: p1)
+			path.addLine(to: p2)
+			path.stroke()
+		}
+	}
+
 	private func drawKeyValueConnections() {
 		guard let keyfield = keyfield else {
 			return
@@ -118,6 +188,24 @@ class KeyfieldVisualization: UIView {
 				path.setLineDash([4, 8], count: 2, phase: 0)
 				return path
 			}.forEach { $0.stroke() }
+	}
+
+	private func drawInputOutputConnection() {
+		guard
+			let inputPosition = inputPosition,
+			let inputDirection = inputDirection,
+			let keyfield = keyfield
+			else {
+				return
+		}
+
+		keyValueConnectionsColor.setStroke()
+
+		let path = UIBezierPath()
+		path.move(to: keyfield.value(for: inputPosition, towards: inputDirection))
+		path.addLine(to: inputPosition)
+		path.setLineDash([4, 8], count: 2, phase: 0)
+		path.stroke()
 	}
 
 	private func drawPowerConnections() {
@@ -240,10 +328,7 @@ class KeyfieldVisualization: UIView {
 
 		keyfield.keys
 			.map { key -> (CGPoint, CGPoint) in
-				let span = inputDirection
-				let vectorToProject = key.position - inputPosition
-
-				let projectionOffset = span * (vectorToProject.dot(span) / span.dot(span))
+				let projectionOffset = project(key.position - inputPosition, onto: inputDirection)
 
 				return (key.position, projectionOffset + inputPosition)
 			}.filter { (keyPosition, projection) in
@@ -273,6 +358,10 @@ class KeyfieldVisualization: UIView {
 
 private func angle(between v1: CGPoint, and v2: CGPoint) -> CGFloat {
 	return v1.dot(v2) / (v1.magnitude * v2.magnitude)
+}
+
+private func project(_ vector: CGPoint, onto span: CGPoint) -> CGPoint {
+	return span * (vector.dot(span) / span.dot(span))
 }
 
 

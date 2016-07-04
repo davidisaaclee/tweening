@@ -17,9 +17,30 @@ func == (lhs: Keypoint, rhs: Keypoint) -> Bool {
 }
 
 struct KeyField {
+	struct Edge {
+		let left: Keypoint
+		let right: Keypoint
+
+		init(_ left: Keypoint, _ right: Keypoint) {
+			self.left = left
+			self.right = right
+		}
+	}
+
 	typealias Power = CGFloat
 
 	var keys: Set<Keypoint>
+
+	var edges: Set<KeyField.Edge> {
+		return Set(keys.flatMap { key -> [(Keypoint, Keypoint)] in
+			return self.keys.flatMap { otherKey -> (Keypoint, Keypoint)? in
+				guard key != otherKey else {
+					return nil
+				}
+				return (key, otherKey)
+			}
+		}.map { (l, r) in KeyField.Edge(l, r) })
+	}
 }
 
 extension KeyField {
@@ -69,4 +90,47 @@ extension KeyField {
 			return 0
 		}
 	}
+}
+
+extension KeyField.Edge: Hashable {
+	var hashValue: Int {
+		let sorted = [left, right].sorted { (l, r) in l.hashValue < r.hashValue }
+		return "\(sorted[0].hashValue),\(sorted[1].hashValue)".hashValue
+
+//		func compare(_ p1: CGPoint, _ p2: CGPoint) -> ComparisonResult {
+//			// Creates a unique scalar out of a 2D point.
+//			func pair(_ p: CGPoint) -> CGFloat {
+//				return (p.x * 2 + (p.y * 2 - 1))
+//			}
+//
+//			let p1ʹ = pair(p1)
+//			let p2ʹ = pair(p2)
+//
+//			if p1ʹ == p2ʹ {
+//				return .orderedSame
+//			} else if p1ʹ > p2ʹ {
+//				return .orderedDescending
+//			} else {
+//				return .orderedAscending
+//			}
+//		}
+//
+//		let sorted = [left, right].sorted { (lhs, rhs) -> Bool in
+//			switch compare(lhs.position, rhs.position) {
+//			case .orderedAscending:
+//				return true
+//
+//			case .orderedDescending:
+//				return false
+//
+//			case .orderedSame:
+//				switch compare(lhs.value)
+//			}
+//		}
+	}
+}
+
+func == (lhs: KeyField.Edge, rhs: KeyField.Edge) -> Bool {
+	// eh
+	return lhs.hashValue == rhs.hashValue
 }
