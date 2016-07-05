@@ -233,6 +233,11 @@ class KeyfieldVisualization: UIView {
 
 		radialColor.setStroke()
 
+		print(keyfield.keys
+			.map { keyfield.edgeBias(for: $0, withInputAt: inputPosition) }
+//			.reduce(0, combine: (+))
+		)
+
 		keyfield.keys.map { key -> (CGPoint, KeyField.Power) in
 //			(key.position, keyfield.directionalPower(for: key, withInputAt: inputPosition, towards: inputDirection))
 			(key.position, keyfield.edgeBias(for: key, withInputAt: inputPosition))

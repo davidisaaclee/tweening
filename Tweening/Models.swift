@@ -62,7 +62,8 @@ extension KeyField {
 
 	func value(for inputPosition: CGPoint, towards direction: CGPoint) -> CGPoint {
 		return keys
-			.map { $0.value * self.power(for: $0, withInputAt: inputPosition, towards: direction) }
+//			.map { $0.value * self.power(for: $0, withInputAt: inputPosition, towards: direction) }
+			.map { $0.value * self.edgeBias(for: $0, withInputAt: inputPosition) }
 			.reduce(CGPoint.zero, combine: (+))
 	}
 
@@ -88,13 +89,19 @@ extension KeyField {
 	}
 
 	func edgeBias(for key: Keypoint, withInputAt position: CGPoint) -> Power {
-		return edges
+		let bias = edges
 			.filter { $0.left == key || $0.right == key }
 			.map { (edge) -> Power in
 				let edgeVector = edge.right.position - edge.left.position
 				let projectionOffset = (position - edge.left.position).project(onto: edgeVector)
 				return (projectionOffset + edge.left.position).distanceTo(key.position) / edgeVector.magnitude
-			}.reduce(0, combine: (+))
+			}
+//			.map { max(0, min(1, $0)) }
+			.reduce(0, combine: (+))
+
+		let flippedBias = CGFloat(edges.count) - bias
+		let normalizedBias = flippedBias / CGFloat(edges.count * 2)
+		return normalizedBias
 	}
 }
 
